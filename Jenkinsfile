@@ -1,18 +1,17 @@
 pipeline {
-
     agent any
 
-        tools {
+    tools {
         jdk 'Java21'
         maven 'Maven3'
     }
 
-
     stages {
 
-        stage('Checkout SCM') {
+        stage('Verify Tools') {
             steps {
-                git 'https://github.com/sourav123608/java-ci-pipeline.git'
+                sh 'java --version'
+                sh 'mvn --version'
             }
         }
 
@@ -31,13 +30,16 @@ pipeline {
         stage('Archive Artifact') {
             steps {
                 archiveArtifacts artifacts: 'target/*.jar',
-                             fingerprint: true
+                                 fingerprint: true
             }
         }
-
     }
 
     post {
+        always {
+            junit testResults: 'target/surefire-reports/*.xml',
+                  allowEmptyResults: true
+        }
 
         success {
             echo 'CI Pipeline completed successfully!'
@@ -46,10 +48,5 @@ pipeline {
         failure {
             echo 'CI Pipeline failed!'
         }
-
-        always {
-            junit 'target/surefire-reports/*.xml'
-        }
-
     }
 }
